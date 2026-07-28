@@ -1,9 +1,34 @@
 import hardhatToolboxViemPlugin from '@nomicfoundation/hardhat-toolbox-viem';
 import { defineConfig } from 'hardhat/config';
 import noxPlugin from '@iexec-nox/nox-hardhat-plugin';
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
-const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL || 'https://rpc.sepolia.org';
-const DEPLOYER_PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY || '0x92567d47346ae396b1c29a9c89af14c4266c64e66f9b2f8530c84a9a017a5776';
+function loadDotEnv(path = '.env') {
+  const envPath = resolve(process.cwd(), path);
+  if (!existsSync(envPath)) return;
+
+  for (const line of readFileSync(envPath, 'utf8').split(/\r?\n/)) {
+    const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+    if (!match || match[1].startsWith('#')) continue;
+
+    const [, key, rawValue = ''] = match;
+    if (process.env[key] !== undefined) continue;
+
+    const value = rawValue.trim().replace(/^['"]|['"]$/g, '');
+    process.env[key] = value;
+  }
+}
+
+loadDotEnv();
+
+const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com';
+const rawSepoliaPrivateKey = process.env.SEPOLIA_PRIVATE_KEY || process.env.DEPLOYER_PRIVATE_KEY;
+const SEPOLIA_PRIVATE_KEY = rawSepoliaPrivateKey
+  ? rawSepoliaPrivateKey.startsWith('0x')
+    ? rawSepoliaPrivateKey
+    : `0x${rawSepoliaPrivateKey}`
+  : undefined;
 
 export default defineConfig({
   plugins: [hardhatToolboxViemPlugin, noxPlugin],
@@ -15,9 +40,9 @@ export default defineConfig({
     },
     sepolia: {
       type: 'http',
-      chainType: 'op',
+      chainId: 11155111,
       url: SEPOLIA_RPC_URL,
-      accounts: [DEPLOYER_PRIVATE_KEY],
+      accounts: SEPOLIA_PRIVATE_KEY ? [SEPOLIA_PRIVATE_KEY] : [],
     },
   },
 });
