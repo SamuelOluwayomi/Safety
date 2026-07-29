@@ -1,0 +1,7 @@
+{
+  "chainId": 11155111,
+  "network": "sepolia",
+  "usdc": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+  "safe": "0x81A397a3654e461A043B1DCf3591689873Be2a8C",
+  "confidentialPayoutModule": "0xDA61800A39739E1E32860dB58ecA7764bd5209eB"
+}
