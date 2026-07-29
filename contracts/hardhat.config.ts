@@ -23,11 +23,20 @@ function loadDotEnv(path = '.env') {
 loadDotEnv();
 
 const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL || 'https://ethereum-sepolia-rpc.publicnode.com';
+const ARBITRUM_SEPOLIA_RPC_URL =
+  process.env.ARBITRUM_SEPOLIA_RPC_URL || 'https://sepolia-rollup.arbitrum.io/rpc';
 const rawSepoliaPrivateKey = process.env.SEPOLIA_PRIVATE_KEY || process.env.DEPLOYER_PRIVATE_KEY;
 const SEPOLIA_PRIVATE_KEY = rawSepoliaPrivateKey
   ? rawSepoliaPrivateKey.startsWith('0x')
     ? rawSepoliaPrivateKey
     : `0x${rawSepoliaPrivateKey}`
+  : undefined;
+const rawArbitrumSepoliaPrivateKey =
+  process.env.ARBITRUM_SEPOLIA_PRIVATE_KEY || process.env.DEPLOYER_PRIVATE_KEY;
+const ARBITRUM_SEPOLIA_PRIVATE_KEY = rawArbitrumSepoliaPrivateKey
+  ? rawArbitrumSepoliaPrivateKey.startsWith('0x')
+    ? rawArbitrumSepoliaPrivateKey
+    : `0x${rawArbitrumSepoliaPrivateKey}`
   : undefined;
 
 export default defineConfig({
@@ -43,6 +52,13 @@ export default defineConfig({
       chainId: 11155111,
       url: SEPOLIA_RPC_URL,
       accounts: SEPOLIA_PRIVATE_KEY ? [SEPOLIA_PRIVATE_KEY] : [],
+    },
+    arbitrumSepolia: {
+      type: 'http',
+      chainType: 'op',
+      chainId: 421614,
+      url: ARBITRUM_SEPOLIA_RPC_URL,
+      accounts: ARBITRUM_SEPOLIA_PRIVATE_KEY ? [ARBITRUM_SEPOLIA_PRIVATE_KEY] : [],
     },
   },
 });

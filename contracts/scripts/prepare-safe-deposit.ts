@@ -1,11 +1,21 @@
 import { encodeFunctionData, parseUnits } from "viem";
 
-const USDC_ADDRESS = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
-const SAFE_ADDRESS = "0x81A397a3654e461A043B1DCf3591689873Be2a8C";
-const MODULE_ADDRESS = "0xDA61800A39739E1E32860dB58ecA7764bd5209eB";
+function requireEnv(name: string): `0x${string}` {
+  const value = process.env[name];
+  if (!value?.startsWith("0x")) {
+    throw new Error(`Set ${name} before running this script`);
+  }
+  return value as `0x${string}`;
+}
 
-const amountLabel = process.env.DEPOSIT_USDC ?? "1";
-const amount = parseUnits(amountLabel, 6);
+const TOKEN_ADDRESS = requireEnv("TOKEN_ADDRESS");
+const SAFE_ADDRESS = requireEnv("SAFE_ADDRESS");
+const MODULE_ADDRESS = requireEnv("MODULE_ADDRESS");
+const chainId = process.env.CHAIN_ID ?? "421614";
+const tokenSymbol = process.env.TOKEN_SYMBOL ?? "TOKEN";
+const tokenDecimals = Number(process.env.TOKEN_DECIMALS ?? "6");
+const amountLabel = process.env.DEPOSIT_AMOUNT ?? "1";
+const amount = parseUnits(amountLabel, tokenDecimals);
 
 const approveData = encodeFunctionData({
   abi: [
@@ -40,19 +50,19 @@ const depositData = encodeFunctionData({
 
 const transactionBuilderJson = {
   version: "1.0",
-  chainId: "11155111",
+  chainId,
   createdAt: Date.now(),
   meta: {
-    name: `Safety deposit ${amountLabel} USDC`,
+    name: `Safety deposit ${amountLabel} ${tokenSymbol}`,
     description:
-      "Approve ConfidentialPayoutModule to spend Safe-held USDC, then deposit into encrypted treasury balance.",
+      `Approve ConfidentialPayoutModule to spend Safe-held ${tokenSymbol}, then deposit into encrypted treasury balance.`,
     txBuilderVersion: "1.18.0",
     createdFromSafeAddress: SAFE_ADDRESS,
     createdFromOwnerAddress: "",
   },
   transactions: [
     {
-      to: USDC_ADDRESS,
+      to: TOKEN_ADDRESS,
       value: "0",
       data: approveData,
       contractMethod: {

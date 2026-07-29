@@ -1,0 +1,6 @@
+{
+  "ConfidentialPayoutModule": {
+    "tokenAddress": "0xYourRealArbitrumSepoliaTokenAddress",
+    "safeAddress": "0xYourArbitrumSepoliaSafeAddress"
+  }
+}
