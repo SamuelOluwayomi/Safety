@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { network } from "hardhat";
-import { erc20Abi, getContract } from "viem";
+import { erc20Abi } from "viem";
 
 const SEPOLIA_USDC = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
 const DEPOSIT_AMOUNT = 1_000_000n; // 1.00 USDC
@@ -17,13 +17,13 @@ describe("ConfidentialPayoutModule (Sepolia USDC smoke test)", function () {
       "Set SEPOLIA_PRIVATE_KEY in .env before running the Sepolia smoke test",
     );
 
-    const usdc = getContract({
+    const initialBalance = (await publicClient.readContract({
       address: SEPOLIA_USDC,
       abi: erc20Abi,
-      client: { public: publicClient, wallet: safeSigner },
-    });
+      functionName: "balanceOf",
+      args: [safeSigner.account.address],
+    } as any)) as bigint;
 
-    const initialBalance = await usdc.read.balanceOf([safeSigner.account.address]);
     assert.ok(
       initialBalance >= DEPOSIT_AMOUNT,
       `Safe signer needs at least ${DEPOSIT_AMOUNT} raw USDC units`,
@@ -34,15 +34,28 @@ describe("ConfidentialPayoutModule (Sepolia USDC smoke test)", function () {
       safeSigner.account.address,
     ]);
 
-    const approveHash = await usdc.write.approve([payoutModule.address, DEPOSIT_AMOUNT]);
+    const approveHash = await safeSigner.writeContract({
+      address: SEPOLIA_USDC,
+      abi: erc20Abi,
+      functionName: "approve",
+      args: [payoutModule.address, DEPOSIT_AMOUNT],
+    } as any);
     await publicClient.waitForTransactionReceipt({ hash: approveHash });
 
-    const depositHash = await payoutModule.write.deposit([DEPOSIT_AMOUNT], {
-      account: safeSigner.account,
-    });
+    const depositHash = await safeSigner.writeContract({
+      address: payoutModule.address,
+      abi: payoutModule.abi,
+      functionName: "deposit",
+      args: [DEPOSIT_AMOUNT],
+    } as any);
     await publicClient.waitForTransactionReceipt({ hash: depositHash });
 
-    const moduleBalance = await usdc.read.balanceOf([payoutModule.address]);
+    const moduleBalance = (await publicClient.readContract({
+      address: SEPOLIA_USDC,
+      abi: erc20Abi,
+      functionName: "balanceOf",
+      args: [payoutModule.address],
+    } as any)) as bigint;
     assert.equal(moduleBalance, DEPOSIT_AMOUNT);
   });
 });

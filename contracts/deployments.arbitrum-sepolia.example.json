@@ -1,0 +1,7 @@
+{
+  "chainId": 421614,
+  "network": "arbitrumSepolia",
+  "token": "0xYourRealArbitrumSepoliaTokenAddress",
+  "safe": "0x9064c9876bec81da527dB6A6BFBF6Bd4fB68ecD0",
+  "confidentialPayoutModule": "0xDeployAfterTokenIsChosen"
+}

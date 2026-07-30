@@ -1,0 +1,9 @@
+{
+  "chainId": 421614,
+  "network": "arbitrumSepolia",
+  "token": "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
+  "tokenSymbol": "USDC",
+  "tokenDecimals": 6,
+  "safe": "0x9064c9876bec81da527dB6A6BFBF6Bd4fB68ecD0",
+  "confidentialPayoutModule": "0xC3B7F5b12532AFA48d9B7fb695cb1B5234380EB4"
+}
