@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { List, X, ArrowUpRight, Globe } from "@phosphor-icons/react";
 import ConnectWalletButton from "./ConnectWalletButton";
 import { useDashboardStore } from "@/lib/stores/dashboard-store";
@@ -44,10 +45,14 @@ export default function Navbar() {
       {/* Main Navbar Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-9 h-9 border-document bg-charcoal text-cream flex items-center justify-center font-mono font-bold text-lg group-hover:bg-accent-red transition-colors">
-            S
-          </div>
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <Image
+            src="/safety.png"
+            alt="Safety Logo"
+            width={36}
+            height={36}
+            className="w-9 h-9 object-contain group-hover:scale-105 transition-transform"
+          />
           <div className="flex flex-col">
             <span className="font-serif font-bold text-xl leading-none tracking-tight">
               Safety<span className="text-accent-red font-mono text-xs ml-1">.module</span>

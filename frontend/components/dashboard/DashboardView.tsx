@@ -113,16 +113,16 @@ export default function DashboardView() {
           </div>
 
           {isConnected && (
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               {/* Status pill */}
-              <div className="font-mono text-[11px] uppercase tracking-wider text-charcoal/60 border-document bg-paper px-4 py-2 flex items-center gap-2">
+              <div className="font-mono text-[11px] uppercase tracking-wider text-charcoal/60 border-document bg-paper px-3 sm:px-4 py-2 flex items-center gap-2">
                 <span>{payoutsLoading || safeLoading ? "Loading…" : `${queue.length} Pending · ${ledger.length} Settled`}</span>
                 <InfoTooltip content="Shows count of active pending payout proposals vs. finalized transfers." />
               </div>
 
               {/* Live indicator */}
               {safeAddress && (
-                <div className="flex items-center gap-2 border-document bg-paper px-3 py-2">
+                <div className="flex items-center gap-2 border-document bg-paper px-2.5 sm:px-3 py-2">
                   {/* Pulsing dot */}
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75" />
@@ -213,9 +213,9 @@ export default function DashboardView() {
                 <SafeContextPanel safe={safe} onLinkDemo={linkDemoSafe} />
               </div>
 
-              <div className="lg:col-span-8 space-y-6">
+              <div className="lg:col-span-8 space-y-6 min-w-0">
                 <div
-                  className="flex flex-wrap gap-1 border-document bg-paper p-1"
+                  className="flex flex-wrap gap-1 border-document bg-paper p-1 max-w-full overflow-x-auto"
                   role="tablist"
                 >
                   {TABS.map((t) => (

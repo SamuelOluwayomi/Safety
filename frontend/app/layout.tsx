@@ -28,6 +28,15 @@ const spaceMono = Space_Mono({
 export const metadata: Metadata = {
   title: "Safety // Confidential Treasury Layer for Safe",
   description: "Confidential payout module for Safe multisig accounts powered by iExec Nox TEE.",
+  icons: {
+    icon: [
+      { url: "/favicon/favicon.ico" },
+      { url: "/favicon/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/favicon/apple-touch-icon.png",
+  },
+  manifest: "/favicon/site.webmanifest",
 };
 
 export default function RootLayout({

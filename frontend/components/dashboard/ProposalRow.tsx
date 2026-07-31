@@ -68,8 +68,8 @@ export default function ProposalRow({
         </div>
 
         {/* Amount — always redacted (handle is an encrypted bytes32) */}
-        <div className="text-right font-mono text-xs shrink-0">
-          <span className="flex items-center justify-end text-[10px] uppercase text-charcoal/50 mb-1">
+        <div className="flex flex-row items-center justify-between sm:flex-col sm:items-end font-mono text-xs shrink-0 pt-1 sm:pt-0 border-t border-charcoal/10 sm:border-0">
+          <span className="flex items-center text-[10px] uppercase text-charcoal/50 sm:mb-1">
             Encrypted Amount
             <InfoTooltip content="The numerical dollar amount is sealed on-chain as a Nox handle bytes32 identifier. Block explorers see only the encrypted handle." />
           </span>
