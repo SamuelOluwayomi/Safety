@@ -254,6 +254,7 @@ export function useDeploySafe(): DeploySafeResult {
           args: [SAFE_SINGLETON, setupData, saltNonce],
           chain,
           account: walletClient.account,
+          gas: 300_000n,
         });
 
         setTxHash(deployHash);
@@ -369,6 +370,7 @@ export function useDeploySafe(): DeploySafeResult {
           ],
           chain,
           account: walletClient.account,
+          gas: 250_000n,
         });
 
         await publicClient.waitForTransactionReceipt({ hash: enableHash });

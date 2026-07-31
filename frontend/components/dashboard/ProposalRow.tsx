@@ -16,6 +16,7 @@ import type { NetworkKey } from "@/lib/deployments";
 import { truncateAddress } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import InfoTooltip from "@/components/ui/InfoTooltip";
+import CopyButton from "@/components/ui/CopyButton";
 
 interface ProposalRowProps {
   payout: OnChainPayout;
@@ -85,7 +86,7 @@ export default function ProposalRow({
             Recipient
             <InfoTooltip content="Destination EVM address that will receive the USDC payout upon finalization." />
           </dt>
-          <dd className="pt-0.5">
+          <dd className="pt-0.5 flex items-center gap-1">
             <a
               href={addressLink(recipient, networkKey)}
               target="_blank"
@@ -98,6 +99,7 @@ export default function ProposalRow({
               )}
               <ArrowSquareOut size={11} />
             </a>
+            <CopyButton text={recipient} label="recipient address" />
           </dd>
         </div>
 
@@ -106,8 +108,9 @@ export default function ProposalRow({
             Nox Amount Handle
             <InfoTooltip content="The 32-byte ciphertext handle representing the encrypted value in the Nox TEE enclave." />
           </dt>
-          <dd className="break-all text-charcoal/70 font-mono pt-0.5">
-            {amountHandle.slice(0, 18)}…
+          <dd className="break-all text-charcoal/70 font-mono pt-0.5 flex items-center gap-1">
+            <span>{amountHandle.slice(0, 18)}…</span>
+            <CopyButton text={amountHandle} label="Nox amount handle" />
           </dd>
         </div>
       </dl>

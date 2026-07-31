@@ -1,4 +1,4 @@
-import { http, createConfig } from "wagmi";
+import { http, fallback, createConfig } from "wagmi";
 import { arbitrumSepolia, sepolia } from "wagmi/chains";
 import { injected } from "wagmi/connectors";
 
@@ -12,12 +12,18 @@ export const wagmiConfig = createConfig({
     }),
   ],
   transports: {
-    [arbitrumSepolia.id]: http(
-      process.env.NEXT_PUBLIC_ARBITRUM_SEPOLIA_RPC_URL ?? "https://sepolia-rollup.arbitrum.io/rpc",
-    ),
-    [sepolia.id]: http(
-      process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL ?? "https://11155111.rpc.thirdweb.com",
-    ),
+    [arbitrumSepolia.id]: fallback([
+      http(process.env.NEXT_PUBLIC_ARBITRUM_SEPOLIA_RPC_URL),
+      http("https://sepolia-rollup.arbitrum.io/rpc"),
+      http("https://arbitrum-sepolia-rpc.publicnode.com"),
+      http("https://rpc.ankr.com/arbitrum_sepolia"),
+    ]),
+    [sepolia.id]: fallback([
+      http(process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL),
+      http("https://rpc.ankr.com/eth_sepolia"),
+      http("https://ethereum-sepolia-rpc.publicnode.com"),
+      http("https://11155111.rpc.thirdweb.com"),
+    ]),
   },
   ssr: true,
 });

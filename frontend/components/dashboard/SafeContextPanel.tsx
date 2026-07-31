@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 import { isAddress } from "viem";
-import { ShieldCheck, ArrowSquareOut, Globe, ShieldPlus } from "@phosphor-icons/react";
+import {
+  ShieldCheck,
+  ArrowSquareOut,
+  Globe,
+  ShieldPlus,
+  LockKey,
+  ArrowDown,
+  Spinner,
+} from "@phosphor-icons/react";
 import type { Address } from "viem";
 
 import { safeAppLink } from "@/lib/chains";
@@ -13,6 +21,9 @@ import { truncateAddress } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import CreateSafeForm from "@/components/dashboard/CreateSafeForm";
+import CopyButton from "@/components/ui/CopyButton";
+import { useDepositToTreasury } from "@/lib/hooks/useDepositToTreasury";
+import { toast } from "sonner";
 
 interface SafeContextPanelProps {
   safe: SafeContext | null;
@@ -29,8 +40,13 @@ export default function SafeContextPanel({
     useDashboardStore();
 
   const [view, setView] = useState<PanelView>("link");
+  const [depositAmount, setDepositAmount] = useState("");
+  const [showDepositForm, setShowDepositForm] = useState(false);
 
   const deployment = getDeployment(networkKey);
+  const { deposit, isLoading: isDepositing } = useDepositToTreasury(deployment);
+
+
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -41,7 +57,17 @@ export default function SafeContextPanel({
 
   function handleSafeCreated(addr: Address) {
     setSafeAddress(addr);
-    setView("link"); // return to normal view (dashboard loads via setSafeAddress)
+    setView("link");
+  }
+
+  async function handleDepositSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!safe?.address || !depositAmount.trim()) return;
+    const ok = await deposit(safe.address, depositAmount.trim());
+    if (ok) {
+      setDepositAmount("");
+      setShowDepositForm(false);
+    }
   }
 
   return (
@@ -160,7 +186,10 @@ export default function SafeContextPanel({
                 <ArrowSquareOut size={16} />
               </a>
             </div>
-            <p className="font-mono text-xs break-all text-charcoal/70">{safe.address}</p>
+            <div className="flex items-center gap-1">
+              <p className="font-mono text-xs break-all text-charcoal/70">{safe.address}</p>
+              <CopyButton text={safe.address} label="Safe address" />
+            </div>
             <div className="grid grid-cols-2 gap-3 font-mono text-xs">
               <div className="border-document bg-cream p-3">
                 <span className="flex items-center text-[10px] uppercase text-charcoal/45 mb-1">
@@ -188,27 +217,102 @@ export default function SafeContextPanel({
             </div>
           </div>
 
+          {/* ── Balances Breakdown ── */}
           <div className="p-6 space-y-4">
             <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-charcoal/50 flex items-center">
               Balances
-              <InfoTooltip content="Breakdown of encrypted treasury balances inside the module vs. unencrypted public tokens in the Safe." />
+              <InfoTooltip content="Breakdown of public tokens sitting in your Safe wallet vs. confidential tokens stored inside the module vault." />
             </div>
             <div className="space-y-3">
+              {/* 1. Safe Public Balance */}
+              <div className="border-document bg-cream p-4 space-y-2">
+                <div className="font-mono text-[10px] uppercase text-charcoal/55 flex items-center justify-between">
+                  <span>Safe Wallet Public Balance</span>
+                  <InfoTooltip content="Standard public USDC held directly inside your Safe wallet contract. Click Deposit to move tokens into the confidential module." />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-base font-bold text-charcoal">
+                    {safe.publicBalanceLabel}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowDepositForm((prev) => !prev)}
+                    className="border-document bg-charcoal text-cream px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider hover:bg-accent-red transition-colors font-bold flex items-center gap-1"
+                  >
+                    <LockKey size={11} />
+                    Deposit
+                  </button>
+                </div>
+              </div>
+
+
+
+              {/* 3. Deposit Form Dropdown */}
+              {showDepositForm && (
+                <form
+                  onSubmit={handleDepositSubmit}
+                  className="border-document bg-paper p-4 space-y-3 font-mono text-xs border-accent-red/40"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase text-accent-red font-bold flex items-center gap-1">
+                      <ArrowDown size={12} />
+                      Privatize USDC Into Vault
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setDepositAmount(safe.publicBalanceLabel.split(" ")[0] ?? "")
+                      }
+                      className="text-[9px] uppercase underline text-charcoal/60 hover:text-accent-red"
+                    >
+                      Use Max
+                    </button>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      step="any"
+                      value={depositAmount}
+                      onChange={(e) => setDepositAmount(e.target.value)}
+                      placeholder="Amount in USDC"
+                      className="flex-1 border-document bg-cream px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-accent-red"
+                    />
+                    <button
+                      type="submit"
+                      disabled={isDepositing || !depositAmount.trim()}
+                      className="border-document bg-accent-red text-white px-3 py-2 text-[10px] uppercase tracking-wider hover:bg-charcoal transition-colors font-bold disabled:opacity-50 flex items-center gap-1"
+                    >
+                      {isDepositing ? (
+                        <>
+                          <Spinner size={12} className="animate-spin" />
+                          Depositing…
+                        </>
+                      ) : (
+                        "Confirm Deposit"
+                      )}
+                    </button>
+                  </div>
+                  <p className="text-[9px] text-charcoal/50 leading-tight">
+                    Transfers USDC from Safe into Confidential Payout Module and encrypts the balance via Nox.
+                  </p>
+                </form>
+              )}
+
+              {/* 3. Confidential Treasury Vault Balance */}
               <div className="border-document bg-charcoal text-cream p-4">
                 <div className="font-mono text-[10px] uppercase text-cream/60 mb-1 flex items-center justify-between">
                   <span>Confidential Treasury (ERC-7984)</span>
                   <InfoTooltip content="Total USDC deposited into the confidential payout module as encrypted handles." />
                 </div>
-                <span className="font-mono text-lg tracking-widest redacted-bar px-2 py-0.5 inline-block text-accent-red font-bold">
-                  {safe.wrappedBalanceLabel}
-                </span>
-              </div>
-              <div className="border-document bg-cream p-4">
-                <div className="font-mono text-[10px] uppercase text-charcoal/55 mb-1 flex items-center justify-between">
-                  <span>Plain ERC-20 (Public Balance)</span>
-                  <InfoTooltip content="Standard USDC balance held in the module contract address on-chain." />
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-lg tracking-widest redacted-bar px-2 py-0.5 inline-block text-accent-red font-bold">
+                    {safe.wrappedBalanceLabel}
+                  </span>
+                  <span className="font-mono text-[11px] text-cream/70 font-bold">
+                    ({safe.moduleBalanceLabel})
+                  </span>
                 </div>
-                <span className="font-mono text-sm font-bold">{safe.publicBalanceLabel}</span>
               </div>
             </div>
           </div>
@@ -219,9 +323,10 @@ export default function SafeContextPanel({
                 Payout module
                 <InfoTooltip content="Deployed ConfidentialPayoutModule smart contract address on this network." />
               </span>
-              <span className="block break-all font-bold text-charcoal">
-                {truncateAddress(safe.moduleAddress, 8)}
-              </span>
+              <div className="flex items-center gap-1 font-bold text-charcoal">
+                <span className="break-all">{truncateAddress(safe.moduleAddress, 8)}</span>
+                <CopyButton text={safe.moduleAddress} label="Payout module address" />
+              </div>
             </div>
           )}
 

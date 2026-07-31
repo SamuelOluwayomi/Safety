@@ -14,6 +14,7 @@ export interface DeploymentConfig {
     module: Address;
     safe: Address;
     usdc: Address;
+    factory?: Address;
   };
 }
 
@@ -44,6 +45,7 @@ export const DEPLOYMENTS: Record<NetworkKey, DeploymentConfig> = {
       module: "0xDA61800A39739E1E32860dB58ecA7764bd5209eB",
       safe: "0x81A397a3654e461A043B1DCf3591689873Be2a8C",
       usdc: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+      factory: "0xd56b800f38a80e2ffd9c2c2b7476a4c15915a44f",
     },
   },
 };

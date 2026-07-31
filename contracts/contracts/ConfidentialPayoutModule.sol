@@ -8,10 +8,14 @@ import {Nox, ebool, euint256, externalEuint256} from "@iexec-nox/nox-protocol-co
 contract ConfidentialPayoutModule {
     using SafeERC20 for IERC20;
 
-    IERC20 public immutable token;   // standard ERC-20 token address (e.g. USDC)
-    address public immutable safe;   // Gnosis Safe address
+    IERC20 public token;   // standard ERC-20 token address (e.g. USDC)
+    address public safe;   // Gnosis Safe address
+    bool private initialized;
 
+    // Encrypted balance — lazily initialized on first deposit to avoid
+    // Nox TEE failures during contract construction/deployment.
     euint256 private encryptedBalance;
+    bool private encryptedBalanceSeeded;
 
     struct PendingPayout {
         address recipient;
@@ -31,16 +35,34 @@ contract ConfidentialPayoutModule {
         _;
     }
 
-    constructor(IERC20 token_, address safe_) {
+    /// @dev Constructor intentionally does NO Nox work so that deployment
+    ///      always succeeds. Call initialize() afterwards.
+    constructor() {}
+
+    /// @notice One-shot initializer — sets token + safe, no Nox calls.
+    ///         Can be called by anyone exactly once (deployer calls it right
+    ///         after deployment via the server API).
+    function initialize(IERC20 token_, address safe_) external {
+        require(!initialized, "already initialized");
+        require(address(token_) != address(0), "zero token");
+        require(safe_ != address(0), "zero safe");
+        initialized = true;
         token = token_;
         safe = safe_;
-        encryptedBalance = Nox.toEuint256(0);
-        Nox.allowThis(encryptedBalance);
-        Nox.allow(encryptedBalance, safe_);
     }
 
     /// @notice Safe deposits real tokens; internal accounting balance becomes encrypted.
+    ///         On the very first deposit we lazily seed encryptedBalance to 0 via Nox
+    ///         (safe to do now because the contract is fully deployed on-chain).
     function deposit(uint256 amount) external onlySafe {
+        // Lazy-init: seed encrypted balance to 0 on first deposit
+        if (!encryptedBalanceSeeded) {
+            encryptedBalance = Nox.toEuint256(0);
+            Nox.allowThis(encryptedBalance);
+            Nox.allow(encryptedBalance, safe);
+            encryptedBalanceSeeded = true;
+        }
+
         token.safeTransferFrom(msg.sender, address(this), amount);
         euint256 encAmount = Nox.toEuint256(amount);
         encryptedBalance = Nox.add(encryptedBalance, encAmount);

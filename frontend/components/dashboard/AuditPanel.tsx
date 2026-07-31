@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Check, Eye, Upload, X } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import InfoTooltip from "@/components/ui/InfoTooltip";
+import CopyButton from "@/components/ui/CopyButton";
 
 /**
  * Signer-facing ACL audit panel. Verifies encrypted handle metadata
@@ -115,7 +116,10 @@ export default function AuditPanel() {
           </p>
           <dl className="grid grid-cols-[minmax(120px,auto)_1fr] gap-x-4 gap-y-2 font-mono text-[11px]">
             <dt className="text-charcoal/45 uppercase">Handle</dt>
-            <dd className="break-all">{handleId.slice(0, 42)}…</dd>
+            <dd className="break-all flex items-center gap-1">
+              <span>{handleId.slice(0, 42)}…</span>
+              <CopyButton text={handleId} label="handle ID" />
+            </dd>
             <dt className="text-charcoal/45 uppercase font-bold">Decryption Rights</dt>
             <dd className="text-emerald-800 font-bold">Recipient + Authorized Safe Signers</dd>
             <dt className="text-charcoal/45 uppercase">Public Explorer Log</dt>

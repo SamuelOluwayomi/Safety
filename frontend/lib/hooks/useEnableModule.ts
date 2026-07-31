@@ -110,7 +110,22 @@ export function useEnableModule(deployment: DeploymentConfig) {
 
       setIsLoading(true);
       try {
-        const moduleAddress = deployment.addresses.module as Address;
+        let moduleAddress = deployment.addresses.module as Address;
+        if (safeAddress.toLowerCase() !== deployment.addresses.safe.toLowerCase()) {
+          try {
+            const res = await fetch("/api/safe/deploy-module", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ safeAddress, networkKey: deployment.key }),
+            });
+            const resData = await res.json();
+            if (resData.moduleAddress) {
+              moduleAddress = resData.moduleAddress as Address;
+            }
+          } catch (apiErr) {
+            console.warn("[useEnableModule] Failed to resolve module address", apiErr);
+          }
+        }
 
         // Build enableModule(moduleAddress) calldata
         const enableData = encodeFunctionData({
@@ -119,45 +134,17 @@ export function useEnableModule(deployment: DeploymentConfig) {
           args: [moduleAddress],
         });
 
-        toast.loading("Reading Safe nonce…", { id: "enable-module" });
+        toast.loading("Prompting wallet approval…", { id: "enable-module" });
 
-        // Read Safe nonce
-        const safeNonce = await publicClient.readContract({
-          address: safeAddress,
-          abi: SAFE_ABI,
-          functionName: "nonce",
-        }) as bigint;
-
-        // Get the Safe tx hash to sign
-        const safeTxHash = await publicClient.readContract({
-          address: safeAddress,
-          abi: SAFE_ABI,
-          functionName: "getTransactionHash",
-          args: [
-            safeAddress,   // to: Safe itself (self-call to enableModule)
-            0n,
-            enableData,
-            0,             // Call
-            0n,
-            0n,
-            0n,
-            ZERO_ADDRESS,
-            ZERO_ADDRESS,
-            safeNonce,
-          ],
-        }) as Hex;
-
-        // Build prevalidated signature for Safe owner
         const sig = buildPrevalidatedSig(walletClient.account.address);
 
-        toast.loading("Submitting enableModule transaction…", { id: "enable-module" });
-
+        // Execute execTransaction directly on the Safe contract
         const txHash = await walletClient.writeContract({
           address: safeAddress,
           abi: SAFE_ABI,
           functionName: "execTransaction",
           args: [
-            safeAddress,
+            safeAddress, // to: Safe itself
             0n,
             enableData,
             0,
@@ -170,6 +157,7 @@ export function useEnableModule(deployment: DeploymentConfig) {
           ],
           chain,
           account: walletClient.account,
+          gas: 250_000n,
         });
 
         toast.loading("Confirming…", { id: "enable-module" });

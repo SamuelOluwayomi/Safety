@@ -32,10 +32,11 @@ type FormValues = {
 
 interface ProposePayoutFormProps {
   deployment: DeploymentConfig;
+  safeAddress?: Address;
   onSuccess?: () => void;
 }
 
-export default function ProposePayoutForm({ deployment, onSuccess }: ProposePayoutFormProps) {
+export default function ProposePayoutForm({ deployment, safeAddress, onSuccess }: ProposePayoutFormProps) {
   const { propose, step, txHash, reset } = useProposePayout(deployment);
 
   const {
@@ -58,6 +59,7 @@ export default function ProposePayoutForm({ deployment, onSuccess }: ProposePayo
       recipient: values.recipient as Address,
       amountUsdc: values.amount,
       memo: values.memo,
+      safeAddress,
     });
   }
 

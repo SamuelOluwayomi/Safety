@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useAccount } from "wagmi";
+import type { Address } from "viem";
 import { toast } from "sonner";
 import { Compass, Lightbulb, CheckCircle, ArrowRight } from "@phosphor-icons/react";
 
@@ -54,13 +55,34 @@ export default function DashboardView() {
 
 
   // ── On-chain data ────────────────────────────────────────────────
-  const { safe, isLoading: safeLoading, refetch: refetchSafe } = useSafeData(
+  const { safe, isLoading: safeLoading, refetch: refetchSafe, dataUpdatedAt } = useSafeData(
     safeAddress,
     deployment,
   );
   const { payouts, isLoading: payoutsLoading, refetch: refetchPayouts } =
-    usePayouts(deployment);
+    usePayouts(deployment, safe?.moduleAddress as Address | undefined);
   const { finalize, isLoading: finalizing } = useFinalizePayout(deployment);
+
+  // ── Live "updated X sec ago" counter ────────────────────────────
+  const [secsAgo, setSecsAgo] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useEffect(() => {
+    setSecsAgo(0);
+  }, [dataUpdatedAt]);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setSecsAgo((s) => s + 1);
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await Promise.all([refetchSafe(), refetchPayouts()]);
+    setIsRefreshing(false);
+  }, [refetchSafe, refetchPayouts]);
 
   const queue  = useMemo(() => payouts.filter((p) => !p.finalized), [payouts]);
   const ledger = useMemo(() => payouts.filter((p) => p.finalized),  [payouts]);
@@ -70,12 +92,6 @@ export default function DashboardView() {
     toast.message(`Deployed Safe loaded for ${deployment.label}`, {
       description: `Address: ${deployment.addresses.safe}`,
     });
-  }
-
-  function handleRefresh() {
-    refetchSafe();
-    refetchPayouts();
-    toast.info("Refreshed on-chain data");
   }
 
   return (
@@ -98,16 +114,41 @@ export default function DashboardView() {
 
           {isConnected && (
             <div className="flex items-center gap-3">
+              {/* Status pill */}
               <div className="font-mono text-[11px] uppercase tracking-wider text-charcoal/60 border-document bg-paper px-4 py-2 flex items-center gap-2">
                 <span>{payoutsLoading || safeLoading ? "Loading…" : `${queue.length} Pending · ${ledger.length} Settled`}</span>
                 <InfoTooltip content="Shows count of active pending payout proposals vs. finalized transfers." />
               </div>
+
+              {/* Live indicator */}
+              {safeAddress && (
+                <div className="flex items-center gap-2 border-document bg-paper px-3 py-2">
+                  {/* Pulsing dot */}
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                  </span>
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-green-700">
+                    Live
+                  </span>
+                  <span className="font-mono text-[10px] text-charcoal/45">
+                    {secsAgo < 5
+                      ? "just now"
+                      : secsAgo < 60
+                      ? `${secsAgo}s ago`
+                      : `${Math.floor(secsAgo / 60)}m ago`}
+                  </span>
+                </div>
+              )}
+
+              {/* Manual refresh (secondary) */}
               <button
                 type="button"
                 onClick={handleRefresh}
-                className="border-document bg-paper px-3 py-2 font-mono text-[11px] uppercase tracking-wider hover:bg-charcoal hover:text-cream transition-colors font-bold"
+                disabled={isRefreshing}
+                className="border-document bg-paper px-3 py-2 font-mono text-[11px] uppercase tracking-wider hover:bg-charcoal hover:text-cream transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                ↻ Refresh
+                {isRefreshing ? "…" : "↻"}
               </button>
             </div>
           )}
@@ -235,7 +276,7 @@ export default function DashboardView() {
                           key={p.requestId}
                           payout={p}
                           onFinalize={async () => {
-                            await finalize(p);
+                            await finalize(p, safe?.address as Address | undefined);
                             refetchPayouts();
                             refetchSafe();
                           }}
@@ -252,6 +293,7 @@ export default function DashboardView() {
                 {tab === "propose" && (
                   <ProposePayoutForm
                     deployment={deployment}
+                    safeAddress={safe?.address ?? undefined}
                     onSuccess={() => {
                       refetchPayouts();
                       refetchSafe();

@@ -33,6 +33,19 @@ Standard Safe multisig transactions publicly log payout amounts and balances on-
 - Contextual **`?` Info Tooltip badges** on all inputs, tabs, and action buttons for instant in-app guidance.
 - Clean layout with conditional footer suppression on the dashboard route (`/dashboard`).
 
+### 5. Dedicated 1:1 Standalone Module Deployment & LocalStorage Resolution
+- Custom Safes receive dedicated 1:1 `ConfidentialPayoutModule` deployments created on-demand via server-side deployment API.
+- Module address mappings are cached client-side in `localStorage` as a single source of truth, ensuring hot-reloads and page refreshes never lose module binding or desync on-chain balances.
+
+### 6. Lazy-Init Enclave Protection & TEE Gas Tuning
+- Refactored `ConfidentialPayoutModule.sol` to perform zero Nox enclave calls during contract deployment/construction.
+- `encryptedBalance` is lazily seeded on the very first deposit, ensuring 100% reliable deployment on testnet chains.
+- Adjusted transaction gas execution limits to **600k** for heavy Nox TEE operations (`requestPayout`, `finalizePayout`) to eliminate out-of-gas reverts.
+
+### 7. Real-Time Data Refresh & Live Indicator
+- Background auto-polling every **15 seconds** keeps public Safe balances, confidential treasury vault balances, signature queues, and ledger history strictly in sync.
+- Includes a live pulsing status badge on the dashboard with a dynamic "updated X sec ago" indicator.
+
 ---
 
 ## About Gnosis Safe & How Privacy is Added
@@ -91,7 +104,16 @@ modifier onlySafe() {
 
 ### Shared Testnet Demo vs. Production 1:1 Isolation
 - **Testnet Hackathon Setup**: The deployed module on testnets is pre-funded with USDC so evaluators and judges can test confidential payouts immediately without needing to deploy and fund a custom Safe first.
-- **Production Setup**: Every newly created Safe deploys its own dedicated `ConfidentialPayoutModule` contract instance. Each treasury starts with **0 USDC balance** and is **100% isolated** — no other Safe or address can access or request funds from another team's module.
+### Signer Audit & ACL Inspection (Does handle inspection expose plaintext values?)
+
+> [!IMPORTANT]
+> **Pasting a handle ID into the Audit / ACL tab does NOT expose or leak the plaintext dollar amount (e.g., 2 USDC).**
+
+1. **Handle as a Ciphertext Reference**: The 32-byte Nox Amount Handle (`0x0000aa36a72301…`) is an encrypted ciphertext reference, not a plain hash of a number.
+2. **ACL Permission Check**: Verifying ACL rights checks *who has decryption authority* according to the Nox TEE policy (e.g. `Recipient + Authorized Safe Signers`).
+3. **Hardware Enclave Protection**: To decrypt the underlying plaintext number, a request must be sent to the **iExec Nox TEE enclave**. The enclave cryptographically verifies the requester's digital signature against the ACL:
+   - **Authorized Wallet (Recipient / Safe Signer)**: Enclave permits generating a decryption proof to unwrap the value.
+   - **Unauthorized User / External Observer**: Enclave **rejects** the request, and the numerical value remains completely sealed.
 
 ---
 
@@ -116,7 +138,7 @@ modifier onlySafe() {
 ## Smart Contract Functions Deep Dive
 
 ### `deposit(uint256 amount)`
-Transfers standard ERC-20 tokens from the Safe into the module contract. Encrypts the deposited amount into a Nox `euint256` data structure and adds it to the internal encrypted balance using `Nox.toEuint256` and `Nox.add`.
+Transfers standard ERC-20 tokens from the Safe into the module contract. On the very first deposit, it lazily seeds the internal encrypted balance to `0` via `Nox.toEuint256(0)` after deployment, ensuring zero enclave errors during contract creation. It then encrypts the deposited amount into a Nox `euint256` data structure and adds it to the internal encrypted balance using `Nox.toEuint256` and `Nox.add`.
 
 ### `requestPayout(address recipient, externalEuint256 amountHandle, bytes calldata amountProof)`
 Called by the Safe via `execTransaction`. Invokes `Nox.fromExternal` to validate the encrypted handle and proof. Subtracts the requested amount from the internal encrypted balance using `Nox.safeSub`. Stores the pending payout request.

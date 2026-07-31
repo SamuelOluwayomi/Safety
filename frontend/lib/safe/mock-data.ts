@@ -18,7 +18,8 @@ export function buildDemoSafe(safeAddress: Address, userAddress?: Address): Safe
     moduleEnabled: true,
     moduleAddress: "0xSafety00000000000000000000000000000001" as Address,
     wrappedBalanceLabel: "[ENCRYPTED]",
-    publicBalanceLabel: "12,400.00 USDC (visible)",
+    publicBalanceLabel: "0.00 USDC (Safe Wallet)",
+    moduleBalanceLabel: "12,400.00 USDC (Module Vault)",
   };
 }
 

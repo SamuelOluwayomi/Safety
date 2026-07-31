@@ -40,6 +40,13 @@ export const SAFE_ABI = [
     outputs: [{ name: "", type: "bool" }],
   },
   {
+    name: "enableModule",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "module", type: "address" }],
+    outputs: [],
+  },
+  {
     name: "getTransactionHash",
     type: "function",
     stateMutability: "view",
@@ -100,6 +107,16 @@ export const MODULE_ABI = [
     outputs: [{ name: "", type: "address" }],
   },
   {
+    name: "initialize",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "token_", type: "address" },
+      { name: "safe_",  type: "address" },
+    ],
+    outputs: [],
+  },
+  {
     name: "nextRequestId",
     type: "function",
     stateMutability: "view",
@@ -140,6 +157,13 @@ export const MODULE_ABI = [
     ],
     outputs: [],
   },
+  {
+    name: "deposit",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "amount", type: "uint256" }],
+    outputs: [],
+  },
   // Events
   {
     name: "PayoutRequested",
@@ -177,6 +201,26 @@ export const ERC20_ABI = [
     outputs: [{ name: "", type: "uint256" }],
   },
   {
+    name: "approve",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "spender", type: "address" },
+      { name: "value", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
+  },
+  {
+    name: "allowance",
+    type: "function",
+    stateMutability: "view",
+    inputs: [
+      { name: "owner", type: "address" },
+      { name: "spender", type: "address" },
+    ],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
     name: "decimals",
     type: "function",
     stateMutability: "view",
@@ -189,6 +233,23 @@ export const ERC20_ABI = [
     stateMutability: "view",
     inputs: [],
     outputs: [{ name: "", type: "string" }],
+  },
+] as const;
+
+export const FACTORY_ABI = [
+  {
+    name: "getOrCreateModule",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "safeAddress", type: "address" }],
+    outputs: [{ name: "moduleAddress", type: "address" }],
+  },
+  {
+    name: "getModule",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "safeAddress", type: "address" }],
+    outputs: [{ name: "", type: "address" }],
   },
 ] as const;
 

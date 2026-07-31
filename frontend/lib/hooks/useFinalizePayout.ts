@@ -3,11 +3,12 @@
 import { useState, useCallback } from "react";
 import { useAccount, usePublicClient, useSwitchChain, useWalletClient } from "wagmi";
 import { encodeFunctionData } from "viem";
-import type { Hex } from "viem";
+import type { Hex, Address } from "viem";
 import { toast } from "sonner";
 import { SAFE_ABI, MODULE_ABI, ZERO_ADDRESS, buildPrevalidatedSig } from "@/lib/contracts";
 import type { DeploymentConfig } from "@/lib/deployments";
 import type { OnChainPayout } from "@/lib/hooks/usePayouts";
+import { getCachedModule, setCachedModule } from "@/lib/utils/module-cache";
 
 type Step =
   | "idle"
@@ -27,7 +28,7 @@ export function useFinalizePayout(deployment: DeploymentConfig) {
   const { addresses } = deployment;
 
   const finalize = useCallback(
-    async (payout: OnChainPayout) => {
+    async (payout: OnChainPayout, safeAddress?: Address) => {
       if (!walletClient?.account || !publicClient) {
         toast.error("Wallet not connected");
         return;
@@ -40,6 +41,33 @@ export function useFinalizePayout(deployment: DeploymentConfig) {
       try {
         if (chainId !== deployment.chainId) {
           await switchChainAsync({ chainId: deployment.chainId });
+        }
+
+        let moduleAddress = addresses.module;
+        let targetSafe = safeAddress ?? addresses.safe;
+
+        if (safeAddress && safeAddress.toLowerCase() !== addresses.safe.toLowerCase()) {
+          // 1. Check localStorage first
+          const cached = getCachedModule(deployment.key, safeAddress);
+          if (cached) {
+            moduleAddress = cached as Address;
+          } else {
+            // 2. Fall back to API
+            try {
+              const res = await fetch("/api/safe/deploy-module", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ safeAddress, networkKey: deployment.key }),
+              });
+              const resData = await res.json();
+              if (resData.moduleAddress) {
+                setCachedModule(deployment.key, safeAddress, resData.moduleAddress);
+                moduleAddress = resData.moduleAddress as Address;
+              }
+            } catch (apiErr) {
+              console.warn("[useFinalizePayout] Failed to resolve module address", apiErr);
+            }
+          }
         }
 
         // ── Step 1: Fetch public decryption proofs from Nox ───────────
@@ -75,17 +103,17 @@ export function useFinalizePayout(deployment: DeploymentConfig) {
 
         // ── Step 3: Get Safe nonce + tx hash ──────────────────────────
         const safeNonce = await publicClient.readContract({
-          address: addresses.safe,
+          address: targetSafe,
           abi: SAFE_ABI,
           functionName: "nonce",
         });
 
         const safeTxHash = await publicClient.readContract({
-          address: addresses.safe,
+          address: targetSafe,
           abi: SAFE_ABI,
           functionName: "getTransactionHash",
           args: [
-            addresses.module,
+            moduleAddress,
             0n,
             calldata,
             0,
@@ -101,10 +129,11 @@ export function useFinalizePayout(deployment: DeploymentConfig) {
         toast.loading("Approving Safe transaction hash…", { id: toastId });
 
         const approveHash = await walletClient.writeContract({
-          address: addresses.safe,
+          address: targetSafe,
           abi: SAFE_ABI,
           functionName: "approveHash",
           args: [safeTxHash],
+          gas: 150_000n,
         });
         await publicClient.waitForTransactionReceipt({ hash: approveHash });
 
@@ -114,11 +143,12 @@ export function useFinalizePayout(deployment: DeploymentConfig) {
 
         const sig = buildPrevalidatedSig(signerAddress);
 
-        const execCalldata = encodeFunctionData({
+        const execHash = await walletClient.writeContract({
+          address: targetSafe,
           abi: SAFE_ABI,
           functionName: "execTransaction",
           args: [
-            addresses.module,
+            moduleAddress,
             0n,
             calldata,
             0,
@@ -127,12 +157,8 @@ export function useFinalizePayout(deployment: DeploymentConfig) {
             ZERO_ADDRESS,
             sig,
           ],
-        });
-
-        const execHash = await walletClient.sendTransaction({
-          to: addresses.safe,
-          data: execCalldata,
-          gas: 1_000_000n,
+          // finalizePayout does 2×publicDecrypt + safeTransfer — needs >300k gas.
+          gas: 600_000n,
         });
 
         const receipt = await publicClient.waitForTransactionReceipt({ hash: execHash });

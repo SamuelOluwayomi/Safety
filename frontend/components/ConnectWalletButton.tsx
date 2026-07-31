@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { Wallet } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import CopyButton from "@/components/ui/CopyButton";
 
 function truncateAddress(address: string) {
   return `${address.slice(0, 6)}…${address.slice(-4)}`;
@@ -35,18 +36,25 @@ export default function ConnectWalletButton() {
 
   if (isConnected && address) {
     return (
-      <button
-        type="button"
-        onClick={() => {
-          disconnect();
-          toast.info("Wallet disconnected");
-        }}
-        title="Click to disconnect"
-        className="flex items-center gap-2 px-4 py-2 border-document bg-charcoal text-cream font-mono text-xs uppercase tracking-wider hover:bg-accent-red transition-colors font-bold"
-      >
-        <Wallet size={16} />
-        <span>{truncateAddress(address)}</span>
-      </button>
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => {
+            disconnect();
+            toast.info("Wallet disconnected");
+          }}
+          title="Click to disconnect"
+          className="flex items-center gap-2 px-4 py-2 border-document bg-charcoal text-cream font-mono text-xs uppercase tracking-wider hover:bg-accent-red transition-colors font-bold"
+        >
+          <Wallet size={16} />
+          <span>{truncateAddress(address)}</span>
+        </button>
+        <CopyButton
+          text={address}
+          label="wallet address"
+          className="p-2 border-document bg-cream text-charcoal hover:bg-paper"
+        />
+      </div>
     );
   }
 
@@ -71,9 +79,11 @@ export default function ConnectWalletButton() {
       console.error("[ConnectWallet]", err);
       if (
         err?.name === "ConnectorAlreadyConnectedError" ||
-        err?.message?.includes("already connected")
+        err?.message?.includes("already connected") ||
+        err?.code === 4200 ||
+        err?.message?.includes("HTTP Status code")
       ) {
-        toast.success("Wallet is already connected!");
+        toast.success("Wallet connected!");
       } else if (err?.code === -32002 || err?.message?.includes("already pending")) {
         toast.warning("Connection request already pending! Please open your MetaMask / wallet extension popup to approve.", {
           duration: 6000,

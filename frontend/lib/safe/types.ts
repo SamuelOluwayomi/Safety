@@ -40,4 +40,5 @@ export interface SafeContext {
   moduleAddress?: Address;
   wrappedBalanceLabel: string;
   publicBalanceLabel: string;
+  moduleBalanceLabel: string;
 }

@@ -2,6 +2,7 @@
 
 import { useReadContract, useReadContracts } from "wagmi";
 import { formatUnits } from "viem";
+import type { Address } from "viem";
 import { MODULE_ABI } from "@/lib/contracts";
 import type { DeploymentConfig } from "@/lib/deployments";
 
@@ -15,21 +16,25 @@ export interface OnChainPayout {
   decryptedAmount: string | null;
 }
 
-export function usePayouts(deployment: DeploymentConfig) {
+export function usePayouts(deployment: DeploymentConfig, moduleAddress?: Address) {
+  // Use the explicitly passed module address (custom Safe) or fall back to the
+  // hardcoded demo module for the pre-deployed Safe.
+  const resolvedModule = moduleAddress ?? deployment.addresses.module;
+
   // 1. Get the total number of requests
   const { data: nextId, refetch: refetchCount } = useReadContract({
-    address: deployment.addresses.module,
+    address: resolvedModule,
     abi: MODULE_ABI,
     functionName: "nextRequestId",
     chainId: deployment.chainId,
-    query: { staleTime: 10_000 },
+    query: { staleTime: 10_000, refetchInterval: 15_000, refetchIntervalInBackground: false },
   });
 
   const count = Number(nextId ?? 0n);
 
   // 2. Read all pendingPayouts in one multicall
   const contracts = Array.from({ length: count }, (_, i) => ({
-    address: deployment.addresses.module,
+    address: resolvedModule,
     abi: MODULE_ABI,
     functionName: "pendingPayouts" as const,
     args: [BigInt(i)] as [bigint],
@@ -38,7 +43,7 @@ export function usePayouts(deployment: DeploymentConfig) {
 
   const { data: rows, isLoading, refetch: refetchRows } = useReadContracts({
     contracts,
-    query: { enabled: count > 0, staleTime: 10_000 },
+    query: { enabled: count > 0, staleTime: 10_000, refetchInterval: 15_000, refetchIntervalInBackground: false },
   });
 
   const payouts: OnChainPayout[] = (rows ?? []).map((row, i) => {
