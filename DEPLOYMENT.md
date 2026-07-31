@@ -2,7 +2,7 @@
 
 ## Active Target
 
-Arbitrum Sepolia is now the active end-to-end target because current Nox handle SDK support resolves correctly for Arbitrum Sepolia.
+Arbitrum Sepolia is the current active demo target, and Ethereum Sepolia is also supported by Nox. The frontend can switch between them with `NEXT_PUBLIC_CHAIN_ID`.
 
 ```text
 Network: Arbitrum Sepolia
@@ -11,11 +11,11 @@ Safe prefix: arbsep
 Explorer: https://sepolia.arbiscan.io
 ```
 
-No mock token should be used. Use a real public Arbitrum Sepolia ERC-20 faucet token or another real ERC-20 already deployed on Arbitrum Sepolia.
+No mock token should be used. Use real public testnet ERC-20 tokens on the selected network.
 
 ## Closed On Ethereum Sepolia
 
-These prove the Safe/module/deposit plumbing, but Ethereum Sepolia is not the active Nox end-to-end target.
+These prove the Safe/module/deposit plumbing on Ethereum Sepolia. They can be used as a secondary deployment path.
 
 - `ConfidentialPayoutModule.sol` compiles against the real Nox protocol package.
 - Ethereum Sepolia USDC smoke test passed with a burner signer acting as `safe`.
@@ -233,6 +233,15 @@ Recorded addresses from the earlier Ethereum Sepolia branch:
 USDC:   0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238
 Safe:   0x81A397a3654e461A043B1DCf3591689873Be2a8C
 Module: 0xDA61800A39739E1E32860dB58ecA7764bd5209eB
+```
+
+To point the frontend at Ethereum Sepolia:
+
+```text
+NEXT_PUBLIC_CHAIN_ID=11155111
+NEXT_PUBLIC_TOKEN_ADDRESS=0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238
+NEXT_PUBLIC_CONFIDENTIAL_PAYOUT_MODULE_ADDRESS=0xDA61800A39739E1E32860dB58ecA7764bd5209eB
+NEXT_PUBLIC_SAFE_ADDRESS=0x81A397a3654e461A043B1DCf3591689873Be2a8C
 ```
 
 ## Remaining Deliverables

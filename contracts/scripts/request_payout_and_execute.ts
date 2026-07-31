@@ -34,10 +34,11 @@ const tokenSymbol     = process.env.TOKEN_SYMBOL     ?? "USDC";
 if (!RECIPIENT?.startsWith("0x")) throw new Error("Set RECIPIENT_ADDRESS or OWNER_ADDRESS");
 
 // ── Hardhat viem clients ──────────────────────────────────────────────
-const networkName = process.env.NETWORK ?? "arbitrumSepolia";
-const { viem } = await network.create(networkName);
+const { viem } = await network.create("arbitrumSepolia");
 const [walletClient] = await viem.getWalletClients();
-if (!walletClient?.account) throw new Error(`No wallet — set private key for ${networkName} in .env`);
+if (!walletClient?.account) throw new Error("No wallet — set ARBITRUM_SEPOLIA_PRIVATE_KEY in .env");
+if (walletClient.chain?.id !== arbitrumSepolia.id)
+  throw new Error(`Wrong chain: ${walletClient.chain?.id} ≠ ${arbitrumSepolia.id}`);
 
 const publicClient = await viem.getPublicClient();
 const signerAddress = walletClient.account.address;
@@ -50,19 +51,19 @@ console.log(`Recipient: ${RECIPIENT}`);
 console.log(`Amount:    ${payoutLabel} ${tokenSymbol}`);
 console.log(`════════════════════════════════════════════════════════\n`);
 
-// Wrap walletClient so Nox sets owner = SAFE_ADDRESS in the proof
-// (matching msg.sender of the Safe transaction when it enters ConfidentialPayoutModule)
+// Wrap walletClient so Nox sets owner = MODULE_ADDRESS in the proof
+// (matching msg.sender when ConfidentialPayoutModule calls Nox.fromExternal on-chain)
 const wrappedWalletClient = {
   ...walletClient,
-  getAddresses: async () => [SAFE_ADDRESS],
-  getAddress: async () => SAFE_ADDRESS,
+  getAddresses: async () => [MODULE_ADDRESS],
+  getAddress: async () => MODULE_ADDRESS,
   account: {
     ...walletClient.account,
-    address: SAFE_ADDRESS,
+    address: MODULE_ADDRESS,
   },
 } as any;
 
-console.log(`[1/5] Encrypting ${payoutLabel} ${tokenSymbol} via Nox (owner = SAFE_ADDRESS)…`);
+console.log(`[1/5] Encrypting ${payoutLabel} ${tokenSymbol} via Nox (owner = MODULE_ADDRESS)…`);
 const handleClient = await createViemHandleClient(wrappedWalletClient);
 const { handle, handleProof: amountProof } = await handleClient.encryptInput(
   payoutAmount,
@@ -70,12 +71,7 @@ const { handle, handleProof: amountProof } = await handleClient.encryptInput(
   MODULE_ADDRESS,
 );
 console.log(`      handle:      ${handle}`);
-const proofBuf = Buffer.from((amountProof as string).slice(2), "hex");
-const ownerInProof = "0x" + proofBuf.slice(0, 20).toString("hex");
-const appInProof = "0x" + proofBuf.slice(20, 40).toString("hex");
-console.log(`      proofLength: ${proofBuf.length} bytes`);
-console.log(`      ownerInProof: ${ownerInProof}`);
-console.log(`      appInProof:   ${appInProof}`);
+console.log(`      proofLength: ${(amountProof as string).length / 2 - 1} bytes`);
 
 // ── Step 2: Encode requestPayout calldata ─────────────────────────────
 console.log(`\n[2/5] Encoding requestPayout calldata…`);

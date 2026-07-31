@@ -47,11 +47,11 @@ console.log(`Module: ${MODULE_ADDRESS}`);
 
 const wrappedWalletClient = {
   ...walletClient,
-  getAddresses: async () => [MODULE_ADDRESS],
-  getAddress: async () => MODULE_ADDRESS,
+  getAddresses: async () => [SAFE_ADDRESS],
+  getAddress: async () => SAFE_ADDRESS,
   account: {
     ...walletClient.account,
-    address: MODULE_ADDRESS,
+    address: SAFE_ADDRESS,
   },
 } as any;
 
