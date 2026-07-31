@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+:root {
+  --bg-cream: #F5F3E9;
+  --text-black: #121212;
+  --accent-red: #C84B31;
+  --border-dark: #121212;
+}
+
+@theme {
+  --color-cream: #F5F3E9;
+  --color-paper: #EFECE1;
+  --color-paper-dark: #E4E0D2;
+  --color-charcoal: #121212;
+  --color-accent-red: #C84B31;
+  
+  --font-serif: var(--font-playfair), Georgia, serif;
+  --font-sans: var(--font-inter), sans-serif;
+  --font-mono: var(--font-space-mono), monospace;
+}
+
+body {
+  background-color: var(--bg-cream);
+  color: var(--text-black);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* Brutalist Classified Document Border Helpers */
+.border-document {
+  border: 1px solid var(--border-dark);
+}
+
+.border-document-b {
+  border-bottom: 1px solid var(--border-dark);
+}
+
+.border-document-r {
+  border-right: 1px solid var(--border-dark);
+}
+
+.border-document-l {
+  border-left: 1px solid var(--border-dark);
+}
+
+.border-document-t {
+  border-top: 1px solid var(--border-dark);
+}
+
+/* Redacted Bar Animation & Style */
+.redacted-bar {
+  background-color: var(--text-black);
+  color: transparent;
+  user-select: none;
+  display: inline-block;
+  border-radius: 1px;
+}
