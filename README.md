@@ -3,6 +3,8 @@
 **WTF Hackathon Summer Edition Project**  
 Powered by **iExec Nox (TEE Enclaves)** and **Gnosis Safe**
 
+📚 **Live Documentation**: [https://safetyy-doc.vercel.app/](https://safetyy-doc.vercel.app/)
+
 ---
 
 ## Executive Summary
