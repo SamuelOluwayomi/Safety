@@ -83,12 +83,14 @@ export default function Navbar() {
           >
             Dashboard
           </Link>
-          <Link
-            href="#docs"
+          <a
+            href="https://safetyy-doc.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
             className="hover:text-accent-red transition-colors py-1 border-b-2 border-transparent hover:border-accent-red"
           >
             Documentation
-          </Link>
+          </a>
         </nav>
 
         {/* Action Button / Connect Wallet Placeholder */}
@@ -152,14 +154,16 @@ export default function Navbar() {
             <span>Dashboard</span>
             <ArrowUpRight size={14} />
           </Link>
-          <Link
-            href="#docs"
+          <a
+            href="https://safetyy-doc.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={() => setMobileMenuOpen(false)}
             className="py-2 border-document-b hover:text-accent-red flex items-center justify-between"
           >
             <span>Documentation</span>
             <ArrowUpRight size={14} />
-          </Link>
+          </a>
           <div className="mt-2 w-full [&>button]:justify-center">
             <ConnectWalletButton />
           </div>
