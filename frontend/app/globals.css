@@ -19,12 +19,18 @@
   --font-mono: var(--font-space-mono), monospace;
 }
 
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
 body {
   background-color: var(--bg-cream);
   color: var(--text-black);
   font-family: var(--font-sans);
   min-height: 100vh;
   margin: 0;
+  overflow-wrap: break-word;
 }
 
 /* Brutalist Classified Document Border Helpers */

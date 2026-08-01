@@ -478,24 +478,24 @@ export default function Home() {
           </div>
 
           {/* Terminal / Explorer Card */}
-          <div className="border-document bg-charcoal text-cream p-6 sm:p-8 font-mono text-xs space-y-4">
-            <div className="flex items-center justify-between border-document-b border-cream/15 pb-3 text-cream/50 text-[10px] uppercase tracking-widest">
+          <div className="border-document bg-charcoal text-cream p-4 sm:p-8 font-mono text-xs space-y-4 max-w-full overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-document-b border-cream/15 pb-3 text-cream/50 text-[10px] uppercase tracking-widest gap-2">
               <span>EXPLORER CALLDATA INSPECTOR // {activeDiffTab === "standard" ? "STANDARD SAFE" : "SAFETY MODULE"}</span>
               <span>NETWORK: ARBITRUM SEPOLIA / ETH SEPOLIA</span>
             </div>
 
             {activeDiffTab === "standard" ? (
-              <div className="space-y-3">
+              <div className="space-y-3 max-w-full overflow-hidden">
                 <div className="text-red-400 font-bold">
                   ⚠️ PUBLIC EXPOSURE WARNING: All values visible on explorer
                 </div>
-                <div className="bg-cream/5 p-4 border border-cream/10 space-y-2">
+                <div className="bg-cream/5 p-4 border border-cream/10 space-y-2 break-all max-w-full">
                   <div><span className="text-cream/50">Tx Method:</span> execTransaction(to, value, data, operation...)</div>
-                  <div><span className="text-cream/50">Target Token:</span> 0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d (USDC)</div>
-                  <div><span className="text-cream/50">Recipient:</span> 0x7a8121Ab000000000000000000000000004b21</div>
+                  <div><span className="text-cream/50">Target Token:</span> <span className="break-all">0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d</span> (USDC)</div>
+                  <div><span className="text-cream/50">Recipient:</span> <span className="break-all">0x7a8121Ab000000000000000000000000004b21</span></div>
                   <div>
                     <span className="text-cream/50">Amount:</span>{" "}
-                    <span className="text-red-400 font-bold bg-red-950/50 px-2 py-0.5 border border-red-500/30">
+                    <span className="text-red-400 font-bold bg-red-950/50 px-2 py-0.5 border border-red-500/30 inline-block break-all">
                       50,000.000000 USDC ($50,000 USD)
                     </span>
                   </div>
@@ -505,18 +505,18 @@ export default function Home() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 max-w-full overflow-hidden">
                 <div className="text-emerald-400 font-bold flex items-center gap-2">
-                  <ShieldCheck size={16} />
-                  CONFIDENTIAL EXECUTION: Payout amount sealed via iExec Nox TEE
+                  <ShieldCheck size={16} className="shrink-0" />
+                  <span>CONFIDENTIAL EXECUTION: Payout amount sealed via iExec Nox TEE</span>
                 </div>
-                <div className="bg-cream/5 p-4 border border-cream/10 space-y-2">
+                <div className="bg-cream/5 p-4 border border-cream/10 space-y-2 break-all max-w-full">
                   <div><span className="text-cream/50">Tx Method:</span> requestPayout(recipient, amountHandle, amountProof)</div>
-                  <div><span className="text-cream/50">Module Contract:</span> 0xC3B7F5b12532AFA48d9B7fb695cb1B5234380EB4</div>
-                  <div><span className="text-cream/50">Recipient:</span> 0x7a8121Ab000000000000000000000000004b21</div>
-                  <div>
-                    <span className="text-cream/50">Encrypted Amount Handle:</span>{" "}
-                    <span className="text-emerald-300 font-mono bg-emerald-950/60 px-2 py-0.5 border border-emerald-500/30">
+                  <div><span className="text-cream/50">Module Contract:</span> <span className="break-all">0xC3B7F5b12532AFA48d9B7fb695cb1B5234380EB4</span></div>
+                  <div><span className="text-cream/50">Recipient:</span> <span className="break-all">0x7a8121Ab000000000000000000000000004b21</span></div>
+                  <div className="space-y-1">
+                    <span className="text-cream/50 block">Encrypted Amount Handle:</span>
+                    <span className="text-emerald-300 font-mono bg-emerald-950/60 px-2 py-1 border border-emerald-500/30 block break-all text-[10px] leading-relaxed">
                       0x0000aa36a72301e7fadb2c4a6342a15728ee7bc8fd8172279c8695ed1a7ca57c
                     </span>
                   </div>

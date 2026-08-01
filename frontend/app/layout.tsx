@@ -47,9 +47,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${playfair.variable} ${inter.variable} ${spaceMono.variable} h-full antialiased`}
+      className={`${playfair.variable} ${inter.variable} ${spaceMono.variable} h-full antialiased max-w-full overflow-x-hidden`}
     >
-      <body className="min-h-full flex flex-col bg-cream text-charcoal font-sans selection:bg-accent-red selection:text-white">
+      <body className="min-h-full flex flex-col bg-cream text-charcoal font-sans selection:bg-accent-red selection:text-white max-w-full overflow-x-hidden">
         <Web3Provider>
           <Navbar />
           <main className="flex-1 flex flex-col">{children}</main>

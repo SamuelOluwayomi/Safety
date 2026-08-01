@@ -71,7 +71,7 @@ export default function SafeContextPanel({
   }
 
   return (
-    <aside className="border-document bg-paper lg:sticky lg:top-24 lg:self-start divide-y divide-charcoal/15">
+    <aside className="border-document bg-paper lg:sticky lg:top-24 lg:self-start divide-y divide-charcoal/15 max-w-full overflow-hidden">
       {/* Network Chooser Bar */}
       <div className="p-4 bg-cream flex items-center justify-between border-document-b font-mono text-xs">
         <span className="flex items-center gap-1 uppercase text-[10px] tracking-wider text-charcoal/60">

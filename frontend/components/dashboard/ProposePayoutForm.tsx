@@ -66,7 +66,7 @@ export default function ProposePayoutForm({ deployment, safeAddress, onSuccess }
   // After success: show confirmation, then allow another
   if (step === "success") {
     return (
-      <div className="border-document bg-paper p-8 space-y-6 text-center">
+      <div className="border-document bg-paper p-5 sm:p-8 space-y-6 text-center max-w-full overflow-hidden">
         <CheckCircle size={40} className="mx-auto text-emerald-600" />
         <div className="space-y-1">
           <p className="font-serif text-xl font-bold text-charcoal">Payout proposed!</p>
@@ -79,7 +79,7 @@ export default function ProposePayoutForm({ deployment, safeAddress, onSuccess }
             href={`${deployment.explorerUrl}/tx/${txHash}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block font-mono text-[11px] text-accent-red underline font-bold"
+            className="inline-block font-mono text-[11px] text-accent-red underline font-bold break-all"
           >
             View Transaction on {deployment.label} Explorer ↗
           </a>
@@ -123,7 +123,7 @@ export default function ProposePayoutForm({ deployment, safeAddress, onSuccess }
   const disabled = isSubmitting || (step !== "idle" && step !== "error");
 
   return (
-    <div className="border-document bg-paper p-6 sm:p-8 space-y-6">
+    <div className="border-document bg-paper p-4 sm:p-8 space-y-6 max-w-full overflow-hidden">
       <div>
         <span className="inline-flex items-center gap-2 border-document px-3 py-1 bg-cream font-mono text-[10px] uppercase tracking-widest text-accent-red font-bold">
           <Lock size={12} />
@@ -197,7 +197,7 @@ export default function ProposePayoutForm({ deployment, safeAddress, onSuccess }
           <input
             type="checkbox"
             {...register("grantAclToSigners")}
-            className="mt-0.5"
+            className="mt-0.5 shrink-0"
           />
           <span className="font-mono text-[11px] text-charcoal/80 leading-relaxed">
             Grant ACL view permissions to Safe signers so auditors can inspect and decrypt the amount inside the Nox TEE. Recipient always gets automatic decrypt rights upon settlement.
@@ -207,7 +207,7 @@ export default function ProposePayoutForm({ deployment, safeAddress, onSuccess }
         <button
           type="submit"
           disabled={disabled}
-          className="inline-flex items-center gap-2 px-6 py-3 border-document bg-charcoal text-cream font-mono text-xs uppercase tracking-widest hover:bg-accent-red transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-bold"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 border-document bg-charcoal text-cream font-mono text-xs uppercase tracking-widest hover:bg-accent-red transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-bold"
         >
           {disabled && step !== "idle" ? (
             <span className="animate-pulse">{stepLabel[step]}</span>
