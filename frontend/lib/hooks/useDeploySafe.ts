@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import type { NetworkKey } from "@/lib/deployments";
 import { DEPLOYMENTS } from "@/lib/deployments";
 import { wagmiConfig, supportedChains } from "@/lib/wagmi/config";
+import { setCachedModule } from "@/lib/utils/module-cache";
 
 // ── Safe factory & singleton addresses (same across all EVM networks) ────────
 // SafeProxyFactory 1.4.1
@@ -308,17 +309,38 @@ export function useDeploySafe(): DeploySafeResult {
         setSafeAddress(deployedSafe);
         toast.success(`Safe deployed at ${deployedSafe.slice(0, 10)}…`, { id: "safe-deploy" });
 
-        // ── STEP 4: Enable the ConfidentialPayoutModule ──────────────
+        // ── STEP 4: Deploy & Enable Dedicated Module ──────────────
         setStep("enabling-module");
+        toast.loading("Deploying dedicated ConfidentialPayoutModule for new Safe…", {
+          id: "safe-enable",
+        });
+
+        let targetModule = moduleAddress;
+        try {
+          const res = await fetch("/api/safe/deploy-module", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ safeAddress: deployedSafe, networkKey }),
+          });
+          const data = await res.json();
+          if (data.moduleAddress) {
+            targetModule = data.moduleAddress as Address;
+            setCachedModule(networkKey, deployedSafe, targetModule);
+            console.log(`[useDeploySafe] Dedicated module created for ${deployedSafe}: ${targetModule}`);
+          }
+        } catch (modErr) {
+          console.warn("[useDeploySafe] Dedicated module deploy warning, using fallback module", modErr);
+        }
+
         toast.loading("Enabling ConfidentialPayoutModule on new Safe…", {
           id: "safe-enable",
         });
 
-        // Build enableModule(moduleAddress) calldata
+        // Build enableModule(targetModule) calldata
         const enableModuleData = encodeFunctionData({
           abi: SAFE_MODULE_ABI,
           functionName: "enableModule",
-          args: [moduleAddress],
+          args: [targetModule],
         });
 
         // Get Safe nonce

@@ -8,10 +8,9 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { sepolia, arbitrumSepolia } from "viem/chains";
-import { readFileSync } from "fs";
-import { resolve } from "path";
 import { DEPLOYMENTS, type NetworkKey } from "@/lib/deployments";
 import { MODULE_ABI } from "@/lib/contracts";
+import moduleArtifact from "@/lib/contracts/ConfidentialPayoutModule.json";
 
 // Cache deployed modules in memory per safe per network
 const moduleCache: Record<string, string> = {};
@@ -70,10 +69,6 @@ export async function POST(req: Request) {
 
     const publicClient = createPublicClient({ chain, transport: http(rpcUrl) });
     const walletClient = createWalletClient({ account, chain, transport: http(rpcUrl) });
-
-    // Load compiled bytecode of ConfidentialPayoutModule from JSON file
-    const artifactPath = resolve(process.cwd(), "lib/contracts/ConfidentialPayoutModule.json");
-    const moduleArtifact = JSON.parse(readFileSync(artifactPath, "utf8"));
 
     // ── Step 1: Deploy contract (empty constructor, no Nox calls) ──
     console.log(`[deploy-module] Deploying module for safe=${safeAddress} on ${networkKey}…`);
